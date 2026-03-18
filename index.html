@@ -4,20 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Finanças</title>
-
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Finanças">
-
     <link rel="apple-touch-icon" href="https://i.postimg.cc/jqgKv1pN/icone.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Remove qualquer borda e faz o iframe ocupar 100% da tela */
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #ffffff; }
-        iframe { width: 100%; height: 100%; border: none; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #ffffff; font-family: 'Poppins', sans-serif;}
+        
+        /* O iframe do app fica escondido atrás da tela de loading inicialmente */
+        iframe { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        /* Nossa Nova Tela de Carregamento Instantânea */
+        #wrapper-splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.4s ease; }
+        .cat-icon { width: 90px; height: 90px; border-radius: 20px; box-shadow: 0 10px 25px rgba(197, 160, 40, 0.2); margin-bottom: 20px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); } 50% { transform: scale(1.05); } 100% { transform: scale(0.95); } }
+        .splash-text { font-size: 24px; font-weight: bold; color: #1d1d1f; }
+        
+        #loading-msg { font-size: 13px; color: #86868b; margin-top: 10px; text-align: center; }
+        #btn-reload { display: none; margin-top: 25px; background: #1d1d1f; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 14px;}
     </style>
 </head>
 <body>
-    <iframe src="https://script.google.com/macros/s/AKfycbwoBnQxdVeIEsDg_i1RPe51WxLj-qeakr0Yjnu7lDbmG9tXeoHsChO0zqNlEw8K2L2nfw/exec"></iframe>
+
+    <div id="wrapper-splash">
+        <img src="https://i.postimg.cc/jqgKv1pN/icone.jpg" class="cat-icon">
+        <div class="splash-text">Finanças Casal</div>
+        <div id="loading-msg">Conectando ao banco...</div>
+        <button id="btn-reload" onclick="recarregarApp()">Recarregar Conexão</button>
+    </div>
+
+    <iframe id="app-frame" src="https://script.google.com/macros/s/AKfycbwoBnQxdVeIEsDg_i1RPe51WxLj-qeakr0Yjnu7lDbmG9tXeoHsChO0zqNlEw8K2L2nfw/exec"></iframe>
+
+    <script>
+        const splash = document.getElementById('wrapper-splash');
+        const btnReload = document.getElementById('btn-reload');
+        const frame = document.getElementById('app-frame');
+        const msg = document.getElementById('loading-msg');
+        
+        // Se o Google não responder em 12 segundos, mostra o botão de erro
+        let timeoutErro = setTimeout(() => {
+            msg.innerText = "A conexão com o Google falhou ou está lenta.";
+            btnReload.style.display = "block";
+        }, 12000);
+
+        // Função do botão para salvar a vida quando dá tela branca
+        function recarregarApp() {
+            msg.innerText = "Reconectando...";
+            btnReload.style.display = "none";
+            frame.src = frame.src; // Força o iframe a reiniciar sem precisar fechar o app no iOS
+            
+            clearTimeout(timeoutErro);
+            timeoutErro = setTimeout(() => {
+                msg.innerText = "Ainda sem resposta. Tente fechar o app.";
+                btnReload.style.display = "block";
+            }, 12000);
+        }
+
+        // Fica escutando o aviso do Apps Script. Quando chegar, esconde o loading!
+        window.addEventListener('message', function(event) {
+            if (event.data === 'appLoaded') {
+                clearTimeout(timeoutErro);
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 400);
+            }
+        });
+    </script>
 </body>
 </html>
