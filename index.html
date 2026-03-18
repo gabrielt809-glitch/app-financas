@@ -4,43 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Finanças</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/jqgKv1pN/icone.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #ffffff; }
-        iframe { width: 100%; height: 100%; border: none; position: absolute; z-index: 1; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #ffffff; font-family: 'Poppins', sans-serif;}
+        iframe { width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; z-index: 1; }
         
         #wrapper-splash { 
-            position: fixed; width: 100%; height: 100%; background: #ffffff; 
-            z-index: 9999; display: flex; justify-content: center; align-items: center; 
-            transition: opacity 0.5s; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-color: #ffffff; z-index: 9999; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            transition: opacity 0.4s ease; 
         }
 
+        /* GATINHO: Redondo e pulsante */
         .cat-icon { 
-            width: 120px; height: 120px; 
-            border-radius: 50%; /* Remove a borda quadrada */
+            width: 100px; height: 100px; 
+            border-radius: 50%; /* Faz o ícone ficar redondo */
+            object-fit: cover;
             animation: pulse-orange 1.8s infinite ease-in-out;
         }
 
         @keyframes pulse-orange {
-            0% { transform: scale(0.9); filter: drop-shadow(0 0 0px rgba(197, 160, 40, 0)); }
-            50% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(197, 160, 40, 0.5)); }
-            100% { transform: scale(0.9); filter: drop-shadow(0 0 0px rgba(197, 160, 40, 0)); }
+            0% { transform: scale(0.92); opacity: 0.9;}
+            50% { transform: scale(1); opacity: 1;}
+            100% { transform: scale(0.92); opacity: 0.9;}
+        }
+        
+        /* TEXTO DE CARREGAMENTO */
+        .splash-text { font-size: 18px; font-weight: 600; color: #1d1d1f; margin-top: 20px; text-transform: capitalize; }
+        #loading-msg { font-size: 11px; color: #86868b; margin-top: 8px; text-align: center; }
+        
+        /* BOTÃO DE RECARREGAR */
+        #btn-reload { 
+            display: none; margin-top: 30px; background: #C5A028; color: white; 
+            border: none; padding: 12px 24px; border-radius: 12px; 
+            font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; 
+            font-size: 13px; box-shadow: 0 4px 12px rgba(197, 160, 40, 0.2);
         }
     </style>
 </head>
 <body>
+
     <div id="wrapper-splash">
         <img src="https://i.postimg.cc/jqgKv1pN/icone.jpg" class="cat-icon">
+        <div class="splash-text">Finanças</div>
+        <div id="loading-msg">Conectando ao banco...</div>
+        <button id="btn-reload" onclick="recarregarApp()">Recarregar App</button>
     </div>
 
     <iframe id="app-frame" src="https://script.google.com/macros/s/AKfycbwoBnQxdVeIEsDg_i1RPe51WxLj-qeakr0Yjnu7lDbmG9tXeoHsChO0zqNlEw8K2L2nfw/exec"></iframe>
 
     <script>
-        window.addEventListener('message', function(e) {
-            if (e.data === 'appLoaded') {
-                const splash = document.getElementById('wrapper-splash');
+        const splash = document.getElementById('wrapper-splash');
+        const btnReload = document.getElementById('btn-reload');
+        const frame = document.getElementById('app-frame');
+        const msg = document.getElementById('loading-msg');
+        
+        // Timer de erro (10 segundos)
+        let timeoutErro = setTimeout(() => {
+            msg.innerText = "A conexão com o Google falhou ou está lenta.";
+            btnReload.style.display = "block";
+        }, 10000);
+
+        function recarregarApp() {
+            msg.innerText = "Reconectando...";
+            btnReload.style.display = "none";
+            frame.src = frame.src; // Força o iframe a reiniciar
+            
+            clearTimeout(timeoutErro);
+            timeoutErro = setTimeout(() => {
+                msg.innerText = "Ainda sem resposta. Tente fechar e abrir o app.";
+                btnReload.style.display = "block";
+            }, 10000);
+        }
+
+        // Fica escutando o aviso do Apps Script. Quando chegar, esconde o loading!
+        window.addEventListener('message', function(event) {
+            if (event.data === 'appLoaded') {
+                clearTimeout(timeoutErro);
                 splash.style.opacity = '0';
-                setTimeout(() => splash.style.display = 'none', 500);
+                setTimeout(() => splash.style.display = 'none', 400);
             }
         });
     </script>
